@@ -18,7 +18,7 @@ contract HTLC {
   /** 
    * @dev lock creates a new swap agreement between the sender (owner) and
    * the counterparty.
-   * @param counterpary The address of the counterparty in the swap.
+   * @param counterparty The address of the counterparty in the swap.
    * @param image The SHA256 image of a known secret.
    * @param amount The amount of tokens to swap.
    * @param tokenContract The address of the underlying token contract to
@@ -32,7 +32,7 @@ contract HTLC {
 	   bytes32 image,
 	   uint256 amount,
 	   address tokenContract,
-	   uint256 lockTime) public returns (string);
+	   uint256 lockTime) external returns (string);
 
   /** 
    * @dev unlock releases tokens locked by the sender (owner). Tokens
@@ -41,7 +41,7 @@ contract HTLC {
    * were locked.
    * @return true if the unlock was successful and false otherwise.
    */
-  function unlock(bytes32 agreementID) public returns (bool);
+  function unlock(bytes32 agreementID) external returns (bool);
 
   /** 
    * @dev claim allows the counterparty to claim tokens from the agreement
@@ -51,18 +51,18 @@ contract HTLC {
    * @param secret The secret required to claim tokens.
    * @return true if the unlock was successful and false otherwise.
    */
-  function claim(bytes32 agreementID, bytes32 secret) public returns (bool);
+  function claim(bytes32 agreementID, bytes32 secret) external returns (bool);
 
   /** 
    * @dev Locked represents a lock event, raised when a new agreement is
-   * created between the owner and a counterpary.
+   * created between the owner and a counterparty.
    */
   event Locked(
-      bytes32 agreementID
-		address owner
-		address counterparty
-		bytes32 image
-		uint256 amount
+	   bytes32 agreementID,
+		address owner,
+		address counterparty,
+		bytes32 image,
+		uint256 amount,
 		uint256 expirty);
 
   /**

@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import './HTLC.sol';
 
 /**
  * @title Contract for Atomic Swaps.
@@ -43,7 +44,8 @@ contract AtomicSwap is HTLC {
 
   // Checks if a given agreement currently exists.
   modifier agreementExists(bytes32 agreementID) {
-	 require(agreements[agreementID].counterparty != address(0))
+	 require(agreements[agreementID].counterparty != address(0));
+	 _;
   }
   
   /**
@@ -55,7 +57,7 @@ contract AtomicSwap is HTLC {
   /** 
    * @dev lock creates a new swap agreement between the sender (owner) and
    * the counterparty.
-   * @param counterpary The address of the counterparty in the swap.
+   * @param counterparty The address of the counterparty in the swap.
    * @param image The SHA256 image of a known secret.
    * @param amount The amount of tokens to swap.
    * @param tokenContract The address of the underlying token contract to
@@ -76,27 +78,28 @@ contract AtomicSwap is HTLC {
     require(lockTime > 0);
     require (amount > 0);
 
-    // Construct a unique ID for this agreement.
-    bytes32 agreementID = sha256(abi.encodePacked(msg.sender, receiver, block.timestamp, image));
-
+    // Construct a unique agreement ID and calculate expiry.
+    bytes32 agreementID = sha256(abi.encodePacked(msg.sender, counterparty, block.timestamp, image));
+	 uint256 expiry = block.timestamp + lockTime;
+	 
 	 // TODO: Check if the contract already exists 
 	 // TODO: image might require more space than bytes32
     agreements[agreementID] = Agreement(
        msg.sender,
-       receiver,
+       counterparty,
        image,
        amount,
        tokenContract,
-       block.timestamp + lockTime
+       expiry
     );
-    
-    StandardToken contract = StandardToken(tokenContract);
+
+    StandardToken st = StandardToken(tokenContract);
 
 	 // Lock tokens by transferring from the initiator's account to
 	 // this contract's address.
-    assert(contract.transferFrom(msg.sender, address(this), amount));
+    assert(st.transferFrom(msg.sender, address(this), amount));
 
-	 emit Locked(agreementID, owner, counterparty, image, amount, expires);
+	 emit Locked(agreementID, msg.sender, counterparty, image, amount, expiry);
   }
 
   /** 
@@ -115,14 +118,13 @@ contract AtomicSwap is HTLC {
 	 // Ensure tokens can only be unlocked after the lock time agreed
 	 // between by both parties has expired.
 	 require(block.timestamp > agreements[agreementID].expiry);
-	 require(msg.sender == agreements[agreementID].sender);
-	 require(sha256(abi.encodePacked(secret)) == agreements[agreementID].image);
+	 require(msg.sender == agreements[agreementID].owner);
 	 
-    StandardToken contract = StandardToken(agreements[agreementID].tokenContract);
+    StandardToken st = StandardToken(agreements[agreementID].tokenContract);
 
 	 // Unlock tokens by transferring from this contract's address to the
 	 // initiator's (sender's) address.
-	 assert(contract.transfer(msg.sender, agreements[agreementID].amount));
+	 assert(st.transfer(msg.sender, agreements[agreementID].amount));
 
 	 emit Unlocked(agreementID);
   }
@@ -145,13 +147,13 @@ contract AtomicSwap is HTLC {
 	 // Ensure tokens can only be claimed before the lock time agreed
 	 // between both parties has expired.
 	 require(block.timestamp < agreements[agreementID].expiry);
-	 require(msg.sender == agreements[agreementID].receiver);
+	 require(msg.sender == agreements[agreementID].counterparty);
 	 require(sha256(abi.encodePacked(secret)) == agreements[agreementID].image);
 
-    StandardToken contract = StandardToken(agreements[agreementID].tokenContract);
+    StandardToken st = StandardToken(agreements[agreementID].tokenContract);
 
 	 // Claim tokens by transferring from this contract's address to the
-	 // initiator's (receiver's) address.
-	 assert(contract.transfer(msg.sender, agreements[agreementID].amount));	 
+	 // initiator's (counterparty's) address.
+	 assert(st.transfer(msg.sender, agreements[agreementID].amount));	 
   }
 }
