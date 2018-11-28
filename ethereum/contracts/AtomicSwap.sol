@@ -14,7 +14,7 @@ contract AtomicSwap is HTLC {
   enum TokenType {
     ERC20,
     ERC271
-  }		  
+  }        
 
   // Agreement represents a swap contract between an owner of tokens
   // and a counterparty. The construct of an agreement captures the
@@ -25,17 +25,17 @@ contract AtomicSwap is HTLC {
     // The address of the token owner and creator of an agreement.
     address owner; 
     // The address of the counterparty in the agreemetn who is allowed
-	 // to claim tokens before the expiry.
+    // to claim tokens before the expiry.
     address counterparty;
     // The image of a secret requred to claim tokens.
     bytes32 image;
     // The amount of tokens to be swapped in the agreement.
     uint256 amount;
-	 // The address of the token contract representing the tokens to be
-	 // swaped in the agreement.
+    // The address of the token contract representing the tokens to be
+    // swaped in the agreement.
     address tokenContract;
-	 // The time (wall clock) after which the agreement is considered to
-	 // have expired and tokens can be unlocked by the owner.	 
+    // The time (wall clock) after which the agreement is considered to
+    // have expired and tokens can be unlocked by the owner.    
     uint256 expiry;
   }
 
@@ -44,8 +44,8 @@ contract AtomicSwap is HTLC {
 
   // Checks if a given agreement currently exists.
   modifier agreementExists(bytes32 agreementID) {
-	 require(agreements[agreementID].counterparty != address(0));
-	 _;
+    require(agreements[agreementID].counterparty != address(0));
+    _;
   }
   
   /**
@@ -80,10 +80,10 @@ contract AtomicSwap is HTLC {
 
     // Construct a unique agreement ID and calculate expiry.
     bytes32 agreementID = sha256(abi.encodePacked(msg.sender, counterparty, block.timestamp, image));
-	 uint256 expiry = block.timestamp + lockTime;
-	 
-	 // TODO: Check if the contract already exists 
-	 // TODO: image might require more space than bytes32
+    uint256 expiry = block.timestamp + lockTime;
+    
+    // TODO: Check if the contract already exists 
+    // TODO: image might require more space than bytes32
     agreements[agreementID] = Agreement(
        msg.sender,
        counterparty,
@@ -95,11 +95,11 @@ contract AtomicSwap is HTLC {
 
     StandardToken st = StandardToken(tokenContract);
 
-	 // Lock tokens by transferring from the initiator's account to
-	 // this contract's address.
+    // Lock tokens by transferring from the initiator's account to
+    // this contract's address.
     assert(st.transferFrom(msg.sender, address(this), amount));
 
-	 emit Locked(agreementID, msg.sender, counterparty, image, amount, expiry);
+    emit Locked(agreementID, msg.sender, counterparty, image, amount, expiry);
   }
 
   /** 
@@ -110,23 +110,23 @@ contract AtomicSwap is HTLC {
    * @return true if the unlock was successful and false otherwise.
    */  
   function unlock(
-	 bytes32 agreementID
+    bytes32 agreementID
   )
-	 agreementExists(agreementID)
-	 external returns (bool)
+    agreementExists(agreementID)
+    external returns (bool)
   {
-	 // Ensure tokens can only be unlocked after the lock time agreed
-	 // between by both parties has expired.
-	 require(block.timestamp > agreements[agreementID].expiry);
-	 require(msg.sender == agreements[agreementID].owner);
-	 
+    // Ensure tokens can only be unlocked after the lock time agreed
+    // between by both parties has expired.
+    require(block.timestamp > agreements[agreementID].expiry);
+    require(msg.sender == agreements[agreementID].owner);
+    
     StandardToken st = StandardToken(agreements[agreementID].tokenContract);
 
-	 // Unlock tokens by transferring from this contract's address to the
-	 // initiator's (sender's) address.
-	 assert(st.transfer(msg.sender, agreements[agreementID].amount));
+    // Unlock tokens by transferring from this contract's address to the
+    // initiator's (sender's) address.
+    assert(st.transfer(msg.sender, agreements[agreementID].amount));
 
-	 emit Unlocked(agreementID);
+    emit Unlocked(agreementID);
   }
 
   /** 
@@ -138,22 +138,22 @@ contract AtomicSwap is HTLC {
    * @return true if the unlock was successful and false otherwise.
    */  
   function claim(
-	 bytes32 agreementID,
-	 bytes32 secret
+    bytes32 agreementID,
+    bytes32 secret
   )
-	 agreementExists(agreementID)
-	 external returns (bool)
+    agreementExists(agreementID)
+    external returns (bool)
   {
-	 // Ensure tokens can only be claimed before the lock time agreed
-	 // between both parties has expired.
-	 require(block.timestamp < agreements[agreementID].expiry);
-	 require(msg.sender == agreements[agreementID].counterparty);
-	 require(sha256(abi.encodePacked(secret)) == agreements[agreementID].image);
+    // Ensure tokens can only be claimed before the lock time agreed
+    // between both parties has expired.
+    require(block.timestamp < agreements[agreementID].expiry);
+    require(msg.sender == agreements[agreementID].counterparty);
+    require(sha256(abi.encodePacked(secret)) == agreements[agreementID].image);
 
     StandardToken st = StandardToken(agreements[agreementID].tokenContract);
 
-	 // Claim tokens by transferring from this contract's address to the
-	 // initiator's (counterparty's) address.
-	 assert(st.transfer(msg.sender, agreements[agreementID].amount));	 
+    // Claim tokens by transferring from this contract's address to the
+    // initiator's (counterparty's) address.
+    assert(st.transfer(msg.sender, agreements[agreementID].amount));  
   }
 }

@@ -22,11 +22,11 @@ contract GoldToken is StandardToken {
 
   
   constructor() public {
-	 // See OpenZeppelin's ERC20Basic.sol
-	 // Total number of tokens in existence
+    // See OpenZeppelin's ERC20Basic.sol
+    // Total number of tokens in existence
     totalSupply_ = INITIAL_SUPPLY;
 
-	 // Assign all tokens to the contract creator.
+    // Assign all tokens to the contract creator.
     balances[msg.sender] = INITIAL_SUPPLY;
   }
 }

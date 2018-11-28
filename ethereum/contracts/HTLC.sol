@@ -29,10 +29,10 @@ contract HTLC {
    */
   function lock(
       address counterparty,
-	   bytes32 image,
-	   uint256 amount,
-	   address tokenContract,
-	   uint256 lockTime) external returns (string);
+      bytes32 image,
+      uint256 amount,
+      address tokenContract,
+      uint256 lockTime) external returns (string);
 
   /** 
    * @dev unlock releases tokens locked by the sender (owner). Tokens
@@ -58,15 +58,15 @@ contract HTLC {
    * created between the owner and a counterparty.
    */
   event Locked(
-	   bytes32 agreementID,
-		address owner,
-		address counterparty,
-		bytes32 image,
-		uint256 amount,
-		uint256 expirty);
+      bytes32 agreementID,
+      address owner,
+      address counterparty,
+      bytes32 image,
+      uint256 amount,
+      uint256 expirty);
 
   /**
-	* @dev Unlocked represents an unlock event, raised when the owner releases
+   * @dev Unlocked represents an unlock event, raised when the owner releases
    * her tokens after the lock time has elapsed.  
    */
   event Unlocked(bytes32 agreementID);
