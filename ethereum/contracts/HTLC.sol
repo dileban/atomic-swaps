@@ -55,9 +55,9 @@ contract HTLC {
    * created between the owner and a counterparty.
    */
   event Locked(
-      bytes32 agreementID,
-      address owner,
-      address counterparty,
+      bytes32 indexed agreementID,
+      address indexed owner,
+      address indexed counterparty,
       bytes32 image,
       uint256 amount,
       uint256 expirty);
@@ -66,11 +66,11 @@ contract HTLC {
    * @dev Unlocked represents an unlock event, raised when the owner releases
    * her tokens after the lock time has elapsed.  
    */
-  event Unlocked(bytes32 agreementID);
+  event Unlocked(bytes32 indexed agreementID);
 
   /** 
    * @dev Claimed represents a claim event, raised when the counterparty
    * claims her tokens using the known secret.
    */
-  event Claimed(bytes32 agreementID, bytes32 secret);
+  event Claimed(bytes32 indexed agreementID, bytes32 secret);
 }
