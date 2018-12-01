@@ -75,6 +75,10 @@ contract AtomicSwap is HTLC {
   )
     public
   {
+    require(counterparty != address(0),
+            "Counterparty address is not valid");
+    require(tokenContract != address(0),
+            "Token contract address is not valid");    
     require(lockTime > 0,
             "Lock time must be greater than 0");
     require(amount > 0,
