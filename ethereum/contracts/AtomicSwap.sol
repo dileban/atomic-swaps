@@ -44,7 +44,8 @@ contract AtomicSwap is HTLC {
 
   // Checks if a given agreement currently exists.
   modifier agreementExists(bytes32 agreementID) {
-    require(agreements[agreementID].counterparty != address(0));
+    require(agreements[agreementID].counterparty != address(0),
+            "Agreement does not exist");
     _;
   }
   
@@ -74,8 +75,10 @@ contract AtomicSwap is HTLC {
   )
     public
   {
-    require(lockTime > 0);
-    require (amount > 0);
+    require(lockTime > 0,
+            "Lock time must be greater than 0");
+    require(amount > 0,
+            "Amount must be greater than 0");
 
     // Construct a unique agreement ID and calculate expiry.
     bytes32 agreementID = sha256(abi.encodePacked(msg.sender, counterparty, block.timestamp, image));
@@ -115,8 +118,10 @@ contract AtomicSwap is HTLC {
   {
     // Ensure tokens can only be unlocked after the lock time agreed
     // between by both parties has expired.
-    require(block.timestamp > agreements[agreementID].expiry);
-    require(msg.sender == agreements[agreementID].owner);
+    require(block.timestamp > agreements[agreementID].expiry,
+            "Agreement has not expired");
+    require(msg.sender == agreements[agreementID].owner,
+            "Agreement can only be unlocked by owner");
     
     StandardToken st = StandardToken(agreements[agreementID].tokenContract);
 
@@ -143,9 +148,12 @@ contract AtomicSwap is HTLC {
   {
     // Ensure tokens can only be claimed before the lock time agreed
     // between both parties has expired.
-    require(block.timestamp < agreements[agreementID].expiry);
-    require(msg.sender == agreements[agreementID].counterparty);
-    require(sha256(abi.encodePacked(secret)) == agreements[agreementID].image);
+    require(block.timestamp < agreements[agreementID].expiry,
+            "Agreement has expired");
+    require(msg.sender == agreements[agreementID].counterparty,
+            "Agreement can only be claimed by owner");
+    require(sha256(abi.encodePacked(secret)) == agreements[agreementID].image,
+            "Secret does not match");
 
     StandardToken st = StandardToken(agreements[agreementID].tokenContract);
 
