@@ -25,23 +25,21 @@ contract HTLC {
    * invoke.
    * @param lockTime An agreed upon lock time during which the invoker is
    * unable to withdraw her tokens. 
-   * @return The agreement id.
    */
   function lock(
       address counterparty,
       bytes32 image,
       uint256 amount,
       address tokenContract,
-      uint256 lockTime) external returns (string);
+      uint256 lockTime) external;
 
   /** 
    * @dev unlock releases tokens locked by the sender (owner). Tokens
    * can only be released once the lock time has elapsed.  
    * @param agreementID The ID of the agreement under which tokens 
    * were locked.
-   * @return true if the unlock was successful and false otherwise.
    */
-  function unlock(bytes32 agreementID) external returns (bool);
+  function unlock(bytes32 agreementID) external;
 
   /** 
    * @dev claim allows the counterparty to claim tokens from the agreement
@@ -49,9 +47,8 @@ contract HTLC {
    * @param agreementID The ID of the agreement under which tokens were 
    * locked.
    * @param secret The secret required to claim tokens.
-   * @return true if the unlock was successful and false otherwise.
    */
-  function claim(bytes32 agreementID, bytes32 secret) external returns (bool);
+  function claim(bytes32 agreementID, bytes32 secret) external;
 
   /** 
    * @dev Locked represents a lock event, raised when a new agreement is

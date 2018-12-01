@@ -64,7 +64,6 @@ contract AtomicSwap is HTLC {
    * invoke.
    * @param lockTime An agreed upon lock time during which the invoker is
    * unable to withdraw her tokens. 
-   * @return The agreement id.
    */  
   function lock(
     address counterparty,
@@ -73,7 +72,7 @@ contract AtomicSwap is HTLC {
     address tokenContract,
     uint256 lockTime
   )
-    external returns (string)
+    external
   {
     require(lockTime > 0);
     require (amount > 0);
@@ -107,13 +106,12 @@ contract AtomicSwap is HTLC {
    * can only be released once the lock time has elapsed.  
    * @param agreementID The ID of the agreement under which tokens 
    * were locked.
-   * @return true if the unlock was successful and false otherwise.
    */  
   function unlock(
     bytes32 agreementID
   )
     agreementExists(agreementID)
-    external returns (bool)
+    external
   {
     // Ensure tokens can only be unlocked after the lock time agreed
     // between by both parties has expired.
@@ -135,14 +133,13 @@ contract AtomicSwap is HTLC {
    * @param agreementID The ID of the agreement under which tokens were 
    * locked.
    * @param secret The secret required to claim tokens.
-   * @return true if the unlock was successful and false otherwise.
    */  
   function claim(
     bytes32 agreementID,
     bytes32 secret
   )
     agreementExists(agreementID)
-    external returns (bool)
+    external
   {
     // Ensure tokens can only be claimed before the lock time agreed
     // between both parties has expired.
