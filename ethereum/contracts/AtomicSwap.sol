@@ -72,7 +72,7 @@ contract AtomicSwap is HTLC {
     address tokenContract,
     uint256 lockTime
   )
-    external
+    public
   {
     require(lockTime > 0);
     require (amount > 0);
@@ -111,7 +111,7 @@ contract AtomicSwap is HTLC {
     bytes32 agreementID
   )
     agreementExists(agreementID)
-    external
+    public
   {
     // Ensure tokens can only be unlocked after the lock time agreed
     // between by both parties has expired.
@@ -139,7 +139,7 @@ contract AtomicSwap is HTLC {
     bytes32 secret
   )
     agreementExists(agreementID)
-    external
+    public
   {
     // Ensure tokens can only be claimed before the lock time agreed
     // between both parties has expired.

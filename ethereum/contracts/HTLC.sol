@@ -31,7 +31,7 @@ contract HTLC {
       bytes32 image,
       uint256 amount,
       address tokenContract,
-      uint256 lockTime) external;
+      uint256 lockTime) public;
 
   /** 
    * @dev unlock releases tokens locked by the sender (owner). Tokens
@@ -39,7 +39,7 @@ contract HTLC {
    * @param agreementID The ID of the agreement under which tokens 
    * were locked.
    */
-  function unlock(bytes32 agreementID) external;
+  function unlock(bytes32 agreementID) public;
 
   /** 
    * @dev claim allows the counterparty to claim tokens from the agreement
@@ -48,7 +48,7 @@ contract HTLC {
    * locked.
    * @param secret The secret required to claim tokens.
    */
-  function claim(bytes32 agreementID, bytes32 secret) external;
+  function claim(bytes32 agreementID, bytes32 secret) public;
 
   /** 
    * @dev Locked represents a lock event, raised when a new agreement is
