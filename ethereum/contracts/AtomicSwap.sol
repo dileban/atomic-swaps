@@ -136,7 +136,7 @@ contract AtomicSwap is HTLC {
    */  
   function claim(
     bytes32 agreementID,
-    bytes32 secret
+    bytes secret
   )
     agreementExists(agreementID)
     public

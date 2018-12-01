@@ -48,7 +48,7 @@ contract HTLC {
    * locked.
    * @param secret The secret required to claim tokens.
    */
-  function claim(bytes32 agreementID, bytes32 secret) public;
+  function claim(bytes32 agreementID, bytes secret) public;
 
   /** 
    * @dev Locked represents a lock event, raised when a new agreement is
