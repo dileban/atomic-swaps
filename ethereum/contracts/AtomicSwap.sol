@@ -14,7 +14,7 @@ contract AtomicSwap is HTLC {
   enum TokenType {
     ERC20,
     ERC271
-  }        
+  }
 
   // Status of an agreement.
   enum Status {
@@ -45,7 +45,7 @@ contract AtomicSwap is HTLC {
     // have expired and tokens can be unlocked by the owner.    
     uint256 expiry;
     // The status of an agreement.
-    Status status;	 
+    Status status;    
   }
 
   // A map of agreement IDs and Agreements 
@@ -72,15 +72,16 @@ contract AtomicSwap is HTLC {
   }
 
   /** 
-   * @dev lock creates a new swap agreement between the sender (owner) and
-   * the counterparty.
+   * @dev lock creates a new swap agreement between the sender (owner)
+   * and the counterparty. The status of the agreement is initialized
+   * to Status.Locked and the 'Locked' event is fired.
    * @param counterparty The address of the counterparty in the swap.
    * @param image The SHA256 image of a known secret.
    * @param amount The amount of tokens to swap.
-   * @param tokenContract The address of the underlying token contract to
-   * invoke.
-   * @param lockTime An agreed upon lock time during which the invoker is
-   * unable to withdraw her tokens. 
+   * @param tokenContract The address of the underlying token contract
+   * to invoke.
+   * @param lockTime An agreed upon lock time during which the invoker
+   * is unable to withdraw her tokens.
    */  
   function lock(
     address counterparty,
@@ -113,7 +114,7 @@ contract AtomicSwap is HTLC {
        amount,
        tokenContract,
        expiry,
-       Status.Locked		 
+       Status.Locked     
     );
 
     StandardToken st = StandardToken(tokenContract);
@@ -128,7 +129,9 @@ contract AtomicSwap is HTLC {
 
   /** 
    * @dev unlock releases tokens locked by the sender (owner). Tokens
-   * can only be released once the lock time has elapsed.  
+   * can only be released once the lock time has elapsed. The
+   * agreement status is updated to Status.Unlocked and the 'Unlocked'
+   * event is fired.
    * @param agreementID The ID of the agreement under which tokens 
    * were locked.
    */  
@@ -153,15 +156,16 @@ contract AtomicSwap is HTLC {
     assert(st.transfer(msg.sender, agreements[agreementID].amount));
 
     // Update agreement status and notify listeners.
-    agreements[agreementID].status = Status.Unlocked;	 
+    agreements[agreementID].status = Status.Unlocked;  
     emit Unlocked(agreementID);
   }
 
   /** 
-   * @dev claim allows the counterparty to claim tokens from the agreement
-   * setup by the creator. 
-   * @param agreementID The ID of the agreement under which tokens were 
-   * locked.
+   * @dev claim allows a counterparty to claim tokens from the
+   * agreement setup by the creator. The agreement status is updated
+   * to Status.Claimed and the 'Claimed' event is fired.
+   * @param agreementID The ID of the agreement under which 
+   * tokens were locked.
    * @param secret The secret required to claim tokens.
    */  
   function claim(
@@ -186,10 +190,10 @@ contract AtomicSwap is HTLC {
     // Claim tokens by transferring from this contract's address to the
     // initiator's (counterparty's) address.
     assert(st.transfer(msg.sender, agreements[agreementID].amount));
-	 
+    
     // Update agreement status and notify listeners.
     agreements[agreementID].status = Status.Claimed;   
-    emit Claimed(agreementID, secret);	 
+    emit Claimed(agreementID, secret);  
   }
 
   /**
