@@ -1,7 +1,9 @@
-var AssetBackedToken = artifacts.require("AssetBackedToken");
+var GoldToken = artifacts.require("GoldToken");
+var AtomicSwap = artifacts.require("AtomicSwap");
 
 module.exports = function(deployer) {
-  deployer.deploy(AssetBackedToken);
+	 deployer.deploy(GoldToken);
+	 deployer.deploy(AtomicSwap);
 };
 
 
