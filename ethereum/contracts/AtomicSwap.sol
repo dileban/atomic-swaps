@@ -6,7 +6,7 @@ import './HTLC.sol';
 /**
  * @title Contract for Atomic Swaps.
  * @dev AtomicSwap implements the HTLC interface.
- */ 
+ */
 contract AtomicSwap is HTLC {
 
   // NOTE: Currently not used. Intended to support
@@ -22,7 +22,7 @@ contract AtomicSwap is HTLC {
     Unlocked,
     Claimed
   }
-  
+
   // Agreement represents a swap contract between an owner of tokens
   // and a counterparty. The construct of an agreement captures the
   // underlying token contract, the amount of tokens to be swapped and
@@ -30,7 +30,7 @@ contract AtomicSwap is HTLC {
   // expires after a pre-agreed period of time.
   struct Agreement {
     // The address of the token owner and creator of an agreement.
-    address owner; 
+    address owner;
     // The address of the counterparty in the agreemetn who is allowed
     // to claim tokens before the expiry.
     address counterparty;
@@ -42,13 +42,13 @@ contract AtomicSwap is HTLC {
     // swaped in the agreement.
     address tokenContract;
     // The time (wall clock) after which the agreement is considered to
-    // have expired and tokens can be unlocked by the owner.    
+    // have expired and tokens can be unlocked by the owner.
     uint256 expiry;
     // The status of an agreement.
-    Status status;    
+    Status status;
   }
 
-  // A map of agreement IDs and Agreements 
+  // A map of agreement IDs and Agreements
   mapping (bytes32 => Agreement) agreements;
 
   // Checks if a given agreement currently exists.
@@ -64,14 +64,14 @@ contract AtomicSwap is HTLC {
             "Agreement must have status Locked");
     _;
   }
-  
+
   /**
    * @dev No special construction logic.
    */
   constructor() public {
   }
 
-  /** 
+  /**
    * @dev lock creates a new swap agreement between the sender (owner)
    * and the counterparty. The status of the agreement is initialized
    * to Status.Locked and the 'Locked' event is fired.
@@ -82,7 +82,7 @@ contract AtomicSwap is HTLC {
    * to invoke.
    * @param lockTime An agreed upon lock time during which the invoker
    * is unable to withdraw her tokens.
-   */  
+   */
   function lock(
     address counterparty,
     bytes32 image,
@@ -95,7 +95,7 @@ contract AtomicSwap is HTLC {
     require(counterparty != address(0),
             "Counterparty address is not valid");
     require(tokenContract != address(0),
-            "Token contract address is not valid");    
+            "Token contract address is not valid");
     require(lockTime > 0,
             "Lock time must be greater than 0");
     require(amount > 0,
@@ -104,9 +104,11 @@ contract AtomicSwap is HTLC {
     // Construct a unique agreement ID and calculate expiry.
     bytes32 agreementID = sha256(abi.encodePacked(msg.sender, counterparty, block.timestamp, image));
     uint256 expiry = block.timestamp + lockTime;
-    
-    // TODO: Check if the contract already exists 
-    // TODO: image might require more space than bytes32
+
+    // Ensure agreement ID doesn't exist already, check for zero-ed struct value
+    require(agreements[agreementID].counterparty == address(0));
+
+    // Create and assign new agreement to map
     agreements[agreementID] = Agreement(
        msg.sender,
        counterparty,
@@ -114,7 +116,7 @@ contract AtomicSwap is HTLC {
        amount,
        tokenContract,
        expiry,
-       Status.Locked     
+       Status.Locked
     );
 
     StandardToken st = StandardToken(tokenContract);
@@ -127,14 +129,14 @@ contract AtomicSwap is HTLC {
     emit Locked(agreementID, msg.sender, counterparty, image, amount, expiry);
   }
 
-  /** 
+  /**
    * @dev unlock releases tokens locked by the sender (owner). Tokens
    * can only be released once the lock time has elapsed. The
    * agreement status is updated to Status.Unlocked and the 'Unlocked'
    * event is fired.
-   * @param agreementID The ID of the agreement under which tokens 
+   * @param agreementID The ID of the agreement under which tokens
    * were locked.
-   */  
+   */
   function unlock(
     bytes32 agreementID
   )
@@ -148,7 +150,7 @@ contract AtomicSwap is HTLC {
             "Agreement has not expired");
     require(msg.sender == agreements[agreementID].owner,
             "Agreement can only be unlocked by owner");
-    
+
     StandardToken st = StandardToken(agreements[agreementID].tokenContract);
 
     // Unlock tokens by transferring from this contract's address to the
@@ -156,18 +158,18 @@ contract AtomicSwap is HTLC {
     assert(st.transfer(msg.sender, agreements[agreementID].amount));
 
     // Update agreement status and notify listeners.
-    agreements[agreementID].status = Status.Unlocked;  
+    agreements[agreementID].status = Status.Unlocked;
     emit Unlocked(agreementID);
   }
 
-  /** 
+  /**
    * @dev claim allows a counterparty to claim tokens from the
    * agreement setup by the creator. The agreement status is updated
    * to Status.Claimed and the 'Claimed' event is fired.
-   * @param agreementID The ID of the agreement under which 
+   * @param agreementID The ID of the agreement under which
    * tokens were locked.
    * @param secret The secret required to claim tokens.
-   */  
+   */
   function claim(
     bytes32 agreementID,
     bytes secret
@@ -190,15 +192,15 @@ contract AtomicSwap is HTLC {
     // Claim tokens by transferring from this contract's address to the
     // initiator's (counterparty's) address.
     assert(st.transfer(msg.sender, agreements[agreementID].amount));
-    
+
     // Update agreement status and notify listeners.
-    agreements[agreementID].status = Status.Claimed;   
-    emit Claimed(agreementID, secret);  
+    agreements[agreementID].status = Status.Claimed;
+    emit Claimed(agreementID, secret);
   }
 
   /**
    * @dev A convenience method for returning the status of a given agreement.
-   * @param agreementID The ID of the agreement under which tokens were 
+   * @param agreementID The ID of the agreement under which tokens were
    * locked.
    * @return The status of the agreement as an ordinal value of enum Status.
    */
@@ -209,5 +211,5 @@ contract AtomicSwap is HTLC {
     public view returns (uint)
   {
     return uint(agreements[agreementID].status);
-  }  
+  }
 }
