@@ -16,6 +16,13 @@ contract AtomicSwap is HTLC {
     ERC271
   }        
 
+  // Status of an agreement.
+  enum Status {
+    Locked,
+    Unlocked,
+    Claimed
+  }
+  
   // Agreement represents a swap contract between an owner of tokens
   // and a counterparty. The construct of an agreement captures the
   // underlying token contract, the amount of tokens to be swapped and
@@ -37,6 +44,8 @@ contract AtomicSwap is HTLC {
     // The time (wall clock) after which the agreement is considered to
     // have expired and tokens can be unlocked by the owner.    
     uint256 expiry;
+    // The status of an agreement.
+    Status status;	 
   }
 
   // A map of agreement IDs and Agreements 
@@ -46,6 +55,13 @@ contract AtomicSwap is HTLC {
   modifier agreementExists(bytes32 agreementID) {
     require(agreements[agreementID].counterparty != address(0),
             "Agreement does not exist");
+    _;
+  }
+
+  // Checks if a given agreement currently 'Locked'
+  modifier agreementLocked(bytes32 agreementID) {
+    require(agreements[agreementID].status == Status.Locked,
+            "Agreement must have status Locked");
     _;
   }
   
@@ -96,7 +112,8 @@ contract AtomicSwap is HTLC {
        image,
        amount,
        tokenContract,
-       expiry
+       expiry,
+       Status.Locked		 
     );
 
     StandardToken st = StandardToken(tokenContract);
@@ -105,6 +122,7 @@ contract AtomicSwap is HTLC {
     // this contract's address.
     assert(st.transferFrom(msg.sender, address(this), amount));
 
+    // Notify listeners.
     emit Locked(agreementID, msg.sender, counterparty, image, amount, expiry);
   }
 
@@ -118,6 +136,7 @@ contract AtomicSwap is HTLC {
     bytes32 agreementID
   )
     agreementExists(agreementID)
+    agreementLocked(agreementID)
     public
   {
     // Ensure tokens can only be unlocked after the lock time agreed
@@ -133,6 +152,8 @@ contract AtomicSwap is HTLC {
     // initiator's (sender's) address.
     assert(st.transfer(msg.sender, agreements[agreementID].amount));
 
+    // Update agreement status and notify listeners.
+    agreements[agreementID].status = Status.Unlocked;	 
     emit Unlocked(agreementID);
   }
 
@@ -148,6 +169,7 @@ contract AtomicSwap is HTLC {
     bytes secret
   )
     agreementExists(agreementID)
+    agreementLocked(agreementID)
     public
   {
     // Ensure tokens can only be claimed before the lock time agreed
@@ -163,6 +185,25 @@ contract AtomicSwap is HTLC {
 
     // Claim tokens by transferring from this contract's address to the
     // initiator's (counterparty's) address.
-    assert(st.transfer(msg.sender, agreements[agreementID].amount));  
+    assert(st.transfer(msg.sender, agreements[agreementID].amount));
+	 
+    // Update agreement status and notify listeners.
+    agreements[agreementID].status = Status.Claimed;   
+    emit Claimed(agreementID, secret);	 
   }
+
+  /**
+   * @dev A convenience method for returning the status of a given agreement.
+   * @param agreementID The ID of the agreement under which tokens were 
+   * locked.
+   * @return The status of the agreement as an ordinal value of enum Status.
+   */
+  function getStatus(
+    bytes32 agreementID
+  )
+    agreementExists(agreementID)
+    public view returns (uint)
+  {
+    return uint(agreements[agreementID].status);
+  }  
 }
