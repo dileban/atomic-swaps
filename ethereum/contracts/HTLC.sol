@@ -60,7 +60,7 @@ contract HTLC {
       address indexed counterparty,
       bytes32 image,
       uint256 amount,
-      uint256 expirty);
+      uint256 expiry);
 
   /**
    * @dev Unlocked represents an unlock event, raised when the owner releases
@@ -72,5 +72,5 @@ contract HTLC {
    * @dev Claimed represents a claim event, raised when the counterparty
    * claims her tokens using the known secret.
    */
-  event Claimed(bytes32 indexed agreementID, bytes32 secret);
+  event Claimed(bytes32 indexed agreementID, bytes secret);
 }
